@@ -20,7 +20,7 @@ class StockRequestOrder(models.Model):
 
     @api.depends('stock_request_ids')
     def _compute_purchase_ids(self):
-        for req in self.sudo():
+        for req in self:
             req.purchase_ids = req.stock_request_ids.mapped('purchase_ids')
             req.purchase_line_ids = req.stock_request_ids.mapped(
                 'purchase_line_ids')
@@ -33,6 +33,10 @@ class StockRequestOrder(models.Model):
         purchases = self.mapped('purchase_ids')
         if len(purchases) > 1:
             action['domain'] = [('id', 'in', purchases.ids)]
+            action['views'] = [
+                (self.env.ref('purchase.purchase_order_tree').id, 'tree'),
+                (self.env.ref('purchase.purchase_order_form').id, 'form'),
+            ]
         elif purchases:
             action['views'] = [
                 (self.env.ref('purchase.purchase_order_form').id, 'form')]
